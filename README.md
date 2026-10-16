@@ -109,6 +109,10 @@ Planned PC-side functionality includes:
 * Adjustable motion-sensitivity curves
 * Controller calibration
 * Firmware updates through a custom configuration application
+
+Device Identity
+The controller presents its own USB/BLE HID vendor and product ID rather than spoofing an existing commercial gamepad. A unique identity is required for Steam Input to apply the correct controller profile, for the operating system to bind the right driver, and for the configuration application to reliably target this device. The planned route is a free product ID issued under the shared open-source vendor ID 0x1209 via pid.codes, with a corresponding SDL game-controller mapping entry so the device is recognised correctly without per-user configuration.
+
 Software and Development Tools
 Tool	Purpose
 VS Code and OSS CAD Suite	Verilog development, synthesis, placement and routing
