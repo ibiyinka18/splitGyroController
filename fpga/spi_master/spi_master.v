@@ -4,6 +4,7 @@ module spi_master #(
     input   wire          clk,
     input   wire          rst_n,
     input   wire          start,
+    input   wire          hold_cs,
     input   wire [7:0]    tx_byte,
     output  reg  [7:0]    rx_byte,
     output  reg           busy,
@@ -58,7 +59,7 @@ always@(posedge clk or negedge rst_n) begin
         done <= 1'b0;                   //default low: overdden in FINNISH
         case (state)
         IDLE: begin
-            cs_n <= 1'b1;
+            cs_n <= hold_cs ? 1'b0 : 1'b1;
             sclk <= 1'b0;
             busy <= 1'b0;
             if (start) begin
@@ -87,7 +88,7 @@ always@(posedge clk or negedge rst_n) begin
             end
         end
         FINISH: begin
-            cs_n    <= 1'b1;
+            cs_n <= hold_cs ? 1'b0 : 1'b1;
             rx_byte <= shift_reg;
             done    <= 1'b1;
             busy    <= 1'b0;

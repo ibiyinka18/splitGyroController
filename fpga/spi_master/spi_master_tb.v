@@ -6,6 +6,7 @@ module spi_master_tb;
 reg         clk;
 reg         rst_n;
 reg         start;
+reg         hold_cs;
 reg [7:0]   tx_byte;
 reg         miso;
 
@@ -37,6 +38,7 @@ spi_master#(
     .sclk       (sclk),
     .cs_n       (cs_n),
     .mosi       (mosi),
+    .hold_cs    (hold_cs),
     .miso       (miso)
 );
 //Faake ICM-45686
@@ -71,6 +73,7 @@ initial begin
     rst_n   = 1'b0;     //start in reset
     start   = 1'b0;
     tx_byte = 8'h00;
+    hold_cs = 1'b0;
     
 
     #200;
