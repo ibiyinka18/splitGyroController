@@ -1,5 +1,6 @@
 module imu_controller #(
-    parameter    CLK_DIV = 6
+    parameter    CLK_DIV = 6,
+    parameter   [23:0]  SETTLE_CYCLES   = 24'd1_200_000   //100 ms @ 12mhz (gyro will need 35ms)
 ) (
     input wire   clk,
     input wire   rst_n,
@@ -37,7 +38,7 @@ module imu_controller #(
 
     localparam [7:0]  READ_BIT  = 8'h80; //OR into an address to read
     localparam [7:0]  N_DATA_BYTES  =5'd12; //6 axes x 2 bytes
-    localparam [23:0] SETTLE_CYCLES = 24'd1_200_000; // ~100 ms @12mhz
+  
 
 
     //state machine

@@ -98,6 +98,34 @@ initial begin
     rx_byte == 8'h3C && cs_n == 1'b1)
     $display(" *** ALL CHEckS PASS ***");
     else $display("** MISMATCH ***");
+
+    //Test 2: trwo byte burs, cs must stay low between bytes
+    @(negedge clk);
+    tx_byte = 8'h80;
+    hold_cs = 1'b1;
+    start   = 1'b1;
+    @(negedge clk);
+    start   = 1'b0;
+    wait (done);
+
+    @(negedge clk);
+    if (cs_n !==1'b0)
+    $display(" FAIL: cs_n wnet high between burst bytes");
+    else
+    $display(" Pass: cs_n held low between burst bytes");
+
+    tx_byte = 8'h00;
+    hold_cs = 1'b0;
+    start = 1'b1;
+    @(negedge clk);
+    start =1'b0;
+    wait (done);
+    #500;
+
+    if (cs_n !== 1'b1)
+    $display(" FAIL: cs_n did not release after burst");
+    else
+    $display(" PASS: cs_n released after burst");
     $finish;
 end
 

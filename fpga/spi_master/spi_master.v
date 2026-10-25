@@ -59,9 +59,9 @@ always@(posedge clk or negedge rst_n) begin
         done <= 1'b0;                   //default low: overdden in FINNISH
         case (state)
         IDLE: begin
-            cs_n <= hold_cs ? 1'b0 : 1'b1;
             sclk <= 1'b0;
             busy <= 1'b0;
+            if(!start)  cs_n <= hold_cs ? 1'b0 : 1'b1;
             if (start) begin
                 shift_reg <= tx_byte;
                 mosi      <= tx_byte[7]; //present MSB before first edge
