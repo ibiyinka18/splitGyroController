@@ -1,0 +1,35 @@
+# Pin constraints for the Lattice iCEstick (ICE40HX1K-STICK-EVN).
+#
+# Breadboard phase only. The final PCB targets iCE40UP5K SG48 and will need
+# its own .pcf written against whatever pinout that board layout uses.
+#
+# PMOD header (J2) package-pin mapping:
+#   J2 pin 1  = 78      J2 pin 7  = 87
+#   J2 pin 2  = 79      J2 pin 8  = 88
+#   J2 pin 3  = 80      J2 pin 9  = 90
+#   J2 pin 4  = 81      J2 pin 10 = 91
+#   J2 pin 5  = GND     J2 pin 11 = GND
+#   J2 pin 6  = VCC     J2 pin 12 = VCC
+#
+# All pin numbers below were verified 2026-10-25 against the Lattice
+# iCEstick Evaluation Kit user guide (docs/iCEstick user guide.pdf):
+# Table 1 (LEDs), Table 3 (Pmod connector) and the Appendix A schematic.
+
+# 12 MHz oscillator. Schematic: the iCE_CLK net from oscillator X1 lands on
+# package pin 21 = GBIN6/PIO3_00, a dedicated global buffer input. Do not
+# move this to an ordinary I/O -- the clock would route through general
+# fabric and pick up skew.
+set_io clk_12mhz   21
+
+# SPI to the MikroE 6DOF IMU 27 Click (ICM-45686).
+# Click pin numbers from docs/6DOF_IMU_27_Click_DataSheet.pdf.
+set_io spi_sclk    78      # PIO1_02 = J2 pin 1  -> Click pin 4  (SCK)
+set_io spi_mosi    79      # PIO1_03 = J2 pin 2  -> Click pin 6  (SDI)
+set_io spi_miso    80      # PIO1_04 = J2 pin 3  <- Click pin 5  (SDO)
+set_io spi_cs_n    81      # PIO1_05 = J2 pin 4  -> Click pin 3  (CS)
+                           #           J2 pin 6  -> Click pin 7  (3.3V)
+                           #           J2 pin 5  -> Click pin 8  (GND)
+
+# Onboard LEDs (Table 1): D1=99 D2=98 D3=97 D4=96 D5=95.
+# D5 is the centre green one; the other four are red.
+set_io led_alive   95
