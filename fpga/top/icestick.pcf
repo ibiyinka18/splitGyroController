@@ -30,6 +30,13 @@ set_io spi_cs_n    81      # PIO1_05 = J2 pin 4  -> Click pin 3  (CS)
                            #           J2 pin 6  -> Click pin 7  (3.3V)
                            #           J2 pin 5  -> Click pin 8  (GND)
 
+# UART out to the onboard FT2232H, which presents it to the host as a serial
+# port over the same USB cable that programs the board. Schematic: the
+# RS232_Tx_TTL net runs from PIO3_06 (package pin 8) to the FTDI's BDBUS1.
+# The receive side (RS232_Rx_TTL) is pin 9 or 10 -- the schematic text is
+# ambiguous and we do not use it yet, so confirm before adding a uart_rx.
+set_io uart_tx_pin 8
+
 # Onboard LEDs (Table 1): D1=99 D2=98 D3=97 D4=96 D5=95.
 # D5 is the centre green one; the other four are red.
 set_io led_alive   95

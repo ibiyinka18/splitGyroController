@@ -17,6 +17,8 @@ SOURCES=(
     fpga/top/top.v
     fpga/imu_controller/imu_controller.v
     fpga/spi_master/spi_master.v
+    fpga/uart_tx_rx/sensor_packet.v
+    fpga/uart_tx_rx/uart_tx.v
 )
 PCF="fpga/top/icestick.pcf"
 

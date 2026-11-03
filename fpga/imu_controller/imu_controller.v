@@ -1,6 +1,10 @@
 module imu_controller #(
     parameter    CLK_DIV = 6,
-    parameter   [23:0]  SETTLE_CYCLES   = 24'd1_200_000   //100 ms @ 12mhz (gyro will need 35ms)
+    parameter   [23:0]  SETTLE_CYCLES   = 24'd1_200_000,  //100 ms @ 12mhz (gyro will need 35ms)
+    //12 MHz / 800 Hz. the imu is configured for an 800 Hz output data rate,
+    //so poll at that rate instead of free-running. reading faster just
+    //re-reads the same values and floods whatever is downstream
+    parameter   [15:0]  SAMPLE_PERIOD   = 16'd15000
 ) (
     input wire   clk,
     input wire   rst_n,
@@ -48,11 +52,13 @@ module imu_controller #(
     localparam [2:0] CMD = 3'd3; // send 0x80 (read from 0x00)
     localparam [2:0] READ = 3'd4; //clock out 12 dummy bytes
     localparam [2:0] PUBLISH = 3'd5; // assmeble words, pulse data_valid
+    localparam [2:0] WAIT_SAMPLE = 3'd6; // pace reads to the sensor's odr
 
     reg [2:0] state;
     reg [1:0] init_index; //which. of the three config registers
     reg [4:0] byte_index; // 0..1 during read
     reg [23:0] settle_count; // settle delay counter
+    reg [15:0] sample_timer; // counts between reads
     reg [7:0]  data_buf [0:11]; // the 112 raw bytes as they arrive
 
     //picks which config register this init step writes.
@@ -77,6 +83,7 @@ module imu_controller #(
             init_index  <= 2'd0;
             byte_index  <= 5'd0;
             settle_count <= 24'd0;
+            sample_timer <= 16'd0;
             pending      <= 1'b0;
             spi_start    <= 1'b0;
             spi_tx_byte  <= 8'd0;
@@ -88,6 +95,11 @@ module imu_controller #(
         end else begin
             spi_start <= 1'b0;
             data_valid <= 1'b0;
+
+            //free-runs so the period is measured start-of-read to
+            //start-of-read rather than read-end to read-start. CMD resets it,
+            //and a later non-blocking assignment wins, so that reset holds
+            sample_timer <= sample_timer + 1'b1;
 
             case (state)
 
@@ -122,6 +134,7 @@ module imu_controller #(
            SETTLE: begin
             if(settle_count == SETTLE_CYCLES) begin
                 settle_count <= 24'd0;
+            sample_timer <= 16'd0;
                 state        <= CMD;
             end else begin
                 settle_count    <= settle_count + 1'b1;
@@ -129,6 +142,7 @@ module imu_controller #(
            end 
            CMD: begin
             if(!pending) begin
+                sample_timer <= 16'd0;
                 spi_tx_byte <= REG_DATA_START | READ_BIT;
                 spi_hold_cs <= 1'b1;
                 spi_start   <= 1'b1;
@@ -163,7 +177,16 @@ module imu_controller #(
             gyro_y <= {data_buf[8], data_buf[9]};
             gyro_z <= {data_buf[10], data_buf[11]};
             data_valid <= 1'b1;
-            state   <= CMD; // loop forever
+            state   <= WAIT_SAMPLE;
+        end
+        WAIT_SAMPLE: begin
+            //hold off until one sample period has passed since the last read
+            if (sample_timer == SAMPLE_PERIOD - 1) begin
+                sample_timer <= 16'd0;
+                state        <= CMD;
+            end else begin
+                sample_timer <= sample_timer + 1'b1;
+            end
         end
     endcase
     end
