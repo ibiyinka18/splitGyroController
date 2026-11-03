@@ -63,7 +63,7 @@ module top (
 
     //sensor_packet <> uart_tx
     wire [7:0] uart_byte;
-    wire       uart_start, uart_busy, uart_done, pkt_dropped;
+    wire       uart_start, uart_busy, uart_done, pkt_dropped, packet_sent;
 
     imu_controller ctrl (
         .clk         (clk_12mhz),
@@ -120,7 +120,8 @@ module top (
         .tx_start     (uart_start),
         .tx_busy      (uart_busy),
         .tx_done      (uart_done),
-        .dropped      (pkt_dropped)
+        .dropped      (pkt_dropped),
+        .packet_sent  (packet_sent)
     );
 
     uart_tx #(
@@ -143,7 +144,7 @@ module top (
         if (!rst_n) begin
             packet_count <= 8'd0;
             led_alive    <= 1'b0;
-        end else if (uart_done && packer.byte_index == 5'd20) begin
+        end else if (packet_sent) begin
             if (packet_count == 8'd99) begin
                 packet_count <= 8'd0;
                 led_alive    <= ~led_alive;

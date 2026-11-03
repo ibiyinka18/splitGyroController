@@ -47,7 +47,8 @@ module sensor_packet #(
     input  wire        tx_busy,
     input  wire        tx_done,
 
-    output reg         dropped             //pulses if a sample arrives mid-packet
+    output reg         dropped,            //pulses if a sample arrives mid-packet
+    output reg         packet_sent         //one-clk pulse when a whole packet is out
 );
 
     localparam SYNC0       = 8'hAA;
@@ -79,12 +80,14 @@ module sensor_packet #(
             tx_start    <= 1'b0;
             tx_byte     <= 8'd0;
             decim_count <= 0;
-            dropped     <= 1'b0;
+            dropped      <= 1'b0;
+            packet_sent  <= 1'b0;
             byte_pending <= 1'b0;
             for (i = 0; i < PACKET_LEN; i = i + 1) pkt[i] <= 8'd0;
         end else begin
-            tx_start <= 1'b0;
-            dropped  <= 1'b0;
+            tx_start    <= 1'b0;
+            dropped     <= 1'b0;
+            packet_sent <= 1'b0;
 
             //count every sample, not just the ones arriving while idle. a
             //packet takes longer than one sample period, so samples do land
@@ -148,7 +151,8 @@ module sensor_packet #(
                 //and separately, notice when one has finished going out
                 if (tx_done) begin
                     if (byte_index == PACKET_LEN - 1) begin
-                        sending <= 1'b0;
+                        sending     <= 1'b0;
+                        packet_sent <= 1'b1;
                     end else begin
                         byte_index   <= byte_index + 1'b1;
                         byte_pending <= 1'b1;
