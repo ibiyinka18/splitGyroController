@@ -96,12 +96,14 @@ module imu_controller_tb;
         for (i = 0; i < 128; i = i + 1) regfile[i] = 8'h00;
 
         // Distinctive data so a mis-ordered byte is immediately obvious
-        regfile[8'h00] = 8'h11;  regfile[8'h01] = 8'h22;   // accel_x = 0x1122
-        regfile[8'h02] = 8'h33;  regfile[8'h03] = 8'h44;   // accel_y = 0x3344
-        regfile[8'h04] = 8'h55;  regfile[8'h05] = 8'h66;   // accel_z = 0x5566
-        regfile[8'h06] = 8'h77;  regfile[8'h07] = 8'h88;   // gyro_x  = 0x7788
-        regfile[8'h08] = 8'h99;  regfile[8'h09] = 8'hAA;   // gyro_y  = 0x99AA
-        regfile[8'h0A] = 8'hBB;  regfile[8'h0B] = 8'hCC;   // gyro_z  = 0xBBCC
+        // little endian, as the real device actually returns it (datasheet
+        // section 15) - low byte at the lower address
+        regfile[8'h00] = 8'h22;  regfile[8'h01] = 8'h11;   // accel_x = 0x1122
+        regfile[8'h02] = 8'h44;  regfile[8'h03] = 8'h33;   // accel_y = 0x3344
+        regfile[8'h04] = 8'h66;  regfile[8'h05] = 8'h55;   // accel_z = 0x5566
+        regfile[8'h06] = 8'h88;  regfile[8'h07] = 8'h77;   // gyro_x  = 0x7788
+        regfile[8'h08] = 8'hAA;  regfile[8'h09] = 8'h99;   // gyro_y  = 0x99AA
+        regfile[8'h0A] = 8'hCC;  regfile[8'h0B] = 8'hBB;   // gyro_z  = 0xBBCC
 
         slave_rx   = 8'h00;
         slave_tx   = 8'h00;

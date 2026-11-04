@@ -170,12 +170,18 @@ module imu_controller #(
            end
         
         PUBLISH: begin
-            accel_x <= {data_buf[0], data_buf[1]};
-            accel_y <= {data_buf[2], data_buf[3]};
-            accel_z <= {data_buf[4], data_buf[5]};
-            gyro_x <= {data_buf[6], data_buf[7]};
-            gyro_y <= {data_buf[8], data_buf[9]};
-            gyro_z <= {data_buf[10], data_buf[11]};
+            //low byte first. the register map in section 16 documents the big
+            //endian layout, but section 15 says the device DEFAULTS to little
+            //endian and only switches if SREG_DATA_ENDIAN_SEL is set - and
+            //that register needs the indirect access procedure. cheaper to
+            //swap here. confirmed on hardware: assembling the other way round
+            //reported 6 g on a stationary board, this way reports 1.006 g
+            accel_x <= {data_buf[1],  data_buf[0]};
+            accel_y <= {data_buf[3],  data_buf[2]};
+            accel_z <= {data_buf[5],  data_buf[4]};
+            gyro_x  <= {data_buf[7],  data_buf[6]};
+            gyro_y  <= {data_buf[9],  data_buf[8]};
+            gyro_z  <= {data_buf[11], data_buf[10]};
             data_valid <= 1'b1;
             state   <= WAIT_SAMPLE;
         end
