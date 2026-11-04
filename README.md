@@ -76,9 +76,10 @@ Planned RTL modules include:
 2. Cartridge Detection and Input Routing
 Each cartridge exposes a hardware-identification signal. The FPGA reads this signal and selects the appropriate input path:
 * Analogue pipeline for joystick cartridges
-* GPIO pipeline for D-pad and face-button cartridges
 * Cartridge-specific input mapping
 This allows the controller to identify a newly installed cartridge and reconfigure its input routing automatically.
+
+Digital button inputs are deliberately not routed through the FPGA. A button press is a human-timescale event, so the FPGA's determinism buys nothing, and routing it through the FPGA would add a UART hop before the signal reaches the radio. The ESP32-S3 owns the BLE link, so it reads button GPIO directly and debounces in firmware. This gives the shortest possible path from press to transmitted report, and frees FPGA pins on the 48-pin package for the sensor pipeline. The FPGA still owns cartridge identification, since the ID determines routing for the analogue path.
 Modular Cartridge System
 The controller supports three swappable input cartridges:
 * TMR joystick cartridge
