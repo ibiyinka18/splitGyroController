@@ -19,6 +19,7 @@ SOURCES=(
     fpga/spi_master/spi_master.v
     fpga/uart_tx_rx/sensor_packet.v
     fpga/uart_tx_rx/uart_tx.v
+    fpga/cartridge_id/cartridge_id.v
 )
 PCF="fpga/top/icestick.pcf"
 

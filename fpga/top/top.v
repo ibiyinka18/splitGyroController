@@ -28,6 +28,10 @@ module top (
     output wire spi_mosi,
     input  wire spi_miso,
 
+    //cartridge hardware id. on the breadboard these are jumpered straight to
+    //3.3V or GND; the real board needs pull-ups so an empty slot reads 111
+    input  wire [2:0] cart_id_pins,
+
     //to the onboard FT2232H, appears as a serial port on the host
     output wire uart_tx_pin,
 
@@ -60,6 +64,19 @@ module top (
     wire signed [15:0] accel_x, accel_y, accel_z;
     wire signed [15:0] gyro_x, gyro_y, gyro_z;
     wire               sample_valid;
+
+    //cartridge detection
+    wire [2:0] cart_id;
+    wire       cart_present, cart_changed;
+
+    cartridge_id cart (
+        .clk          (clk_12mhz),
+        .rst_n        (rst_n),
+        .id_pins      (cart_id_pins),
+        .cart_id      (cart_id),
+        .cart_present (cart_present),
+        .cart_changed (cart_changed)
+    );
 
     //sensor_packet <> uart_tx
     wire [7:0] uart_byte;
@@ -116,6 +133,8 @@ module top (
         .roll         (16'sd0),
         .calibrated   (1'b0),            //no bias module in this build
         .is_still     (1'b0),
+        .cart_id      (cart_id),
+        .cart_present (cart_present),
         .tx_byte      (uart_byte),
         .tx_start     (uart_start),
         .tx_busy      (uart_busy),

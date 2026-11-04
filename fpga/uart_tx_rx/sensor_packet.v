@@ -40,6 +40,8 @@ module sensor_packet #(
     input  wire signed [15:0] roll,
     input  wire        calibrated,
     input  wire        is_still,
+    input  wire [2:0]  cart_id,            //from cartridge_id, 111 = none
+    input  wire        cart_present,
 
     //to uart_tx
     output reg  [7:0]  tx_byte,
@@ -50,6 +52,11 @@ module sensor_packet #(
     output reg         dropped,            //pulses if a sample arrives mid-packet
     output reg         packet_sent         //one-clk pulse when a whole packet is out
 );
+
+    //status byte layout, so firmware and rtl cannot drift apart:
+    //  [0] calibrated   [1] is_still   [4:2] cart_id   [5] cart_present
+    //  [7:6] spare
+    wire [7:0] status = {2'b00, cart_present, cart_id, is_still, calibrated};
 
     localparam SYNC0       = 8'hAA;
     localparam SYNC1       = 8'h55;
@@ -106,7 +113,7 @@ module sensor_packet #(
                     pkt[0]  <= SYNC0;
                     pkt[1]  <= SYNC1;
                     pkt[2]  <= seq;
-                    pkt[3]  <= {6'd0, is_still, calibrated};
+                    pkt[3]  <= status;
 
                     pkt[4]  <= accel_x[15:8];   pkt[5]  <= accel_x[7:0];
                     pkt[6]  <= accel_y[15:8];   pkt[7]  <= accel_y[7:0];
@@ -120,7 +127,7 @@ module sensor_packet #(
                     //xor of bytes 2..19, i.e. everything after the sync and
                     //before the checksum itself
                     pkt[20] <= seq
-                             ^ {6'd0, is_still, calibrated}
+                             ^ status
                              ^ accel_x[15:8] ^ accel_x[7:0]
                              ^ accel_y[15:8] ^ accel_y[7:0]
                              ^ accel_z[15:8] ^ accel_z[7:0]
