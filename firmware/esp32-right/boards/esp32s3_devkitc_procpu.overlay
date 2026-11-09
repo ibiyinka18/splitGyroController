@@ -1,0 +1,38 @@
+/* Hardware description for the right half on an ESP32-S3-DevKitC-1.
+ *
+ * This is the device tree overlay: it says what hardware exists and how it is
+ * wired, as data rather than as code. The C side asks for "the fpga link
+ * uart" by name and receives it already configured. Moving to the final
+ * board means editing this file, not the firmware.
+ *
+ * Same split as the FPGA side, where icestick.pcf says which pin is which and
+ * the Verilog says what the logic does.
+ */
+
+&pinctrl {
+	uart1_fpga: uart1_fpga {
+		group1 {
+			/* receive only - the FPGA has no uart_rx, so nothing is
+			 * transmitted back on this link yet
+			 */
+			pinmux = <UART1_RX_GPIO18>;
+			bias-pull-up;
+		};
+	};
+};
+
+&uart1 {
+	status = "okay";
+	current-speed = <1000000>;	/* matches CLKS_PER_BIT=12 at 12 MHz */
+	pinctrl-0 = <&uart1_fpga>;
+	pinctrl-names = "default";
+};
+
+/ {
+	chosen {
+		/* the application refers to this name, not to uart1 directly,
+		 * so a different board can point it somewhere else
+		 */
+		fpga,link-uart = &uart1;
+	};
+};
