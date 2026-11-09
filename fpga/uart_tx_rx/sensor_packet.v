@@ -40,8 +40,8 @@ module sensor_packet #(
     input  wire signed [15:0] roll,
     input  wire        calibrated,
     input  wire        is_still,
-    input  wire [2:0]  cart_id,            //from cartridge_id, 111 = none
-    input  wire        cart_present,
+    input  wire [1:0]  cart_a,             //receptacle A id, 11 = nothing inserted
+    input  wire [1:0]  cart_b,             //receptacle B, tied to 11 on the right half
 
     //to uart_tx
     output reg  [7:0]  tx_byte,
@@ -54,9 +54,12 @@ module sensor_packet #(
 );
 
     //status byte layout, so firmware and rtl cannot drift apart:
-    //  [0] calibrated   [1] is_still   [4:2] cart_id   [5] cart_present
-    //  [7:6] spare
-    wire [7:0] status = {2'b00, cart_present, cart_id, is_still, calibrated};
+    //  [0] calibrated  [1] is_still  [3:2] cart_a  [5:4] cart_b  [7:6] spare
+    //
+    //a receptacle id of 11 means nothing is inserted, so presence needs no
+    //separate flag. the right half has only one receptacle and ties cart_b to
+    //11, which keeps one packet format across both halves
+    wire [7:0] status = {2'b00, cart_b, cart_a, is_still, calibrated};
 
     localparam SYNC0       = 8'hAA;
     localparam SYNC1       = 8'h55;

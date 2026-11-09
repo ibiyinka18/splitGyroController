@@ -1,8 +1,17 @@
-/* Reads the cartridge hardware-ID pins and reports a stable identity.
+/* Reads one cartridge receptacle's hardware-ID pins and reports a stable id.
 
-Each cartridge grounds a pattern on the ID lines. The fpga side is pulled
-high, so all-ones means nothing is plugged in and 000..110 are seven usable
-cartridge types.
+Handles a single receptacle. The left half has two and the right half one, so
+top.v instantiates this once or twice as the board needs rather than the
+module carrying a count it cannot know. Same idea as spi_master driving both
+the IMU and the ADC.
+
+The fpga side is pulled high and the cartridge grounds a pattern, so all-ones
+means nothing is plugged in:
+
+    11  none
+    10  thumbstick
+    01  d-pad
+    00  spare
 
 Two problems to solve, both the same shape as reading a button:
 
@@ -27,18 +36,17 @@ module cartridge_id #(
     input  wire       clk,
     input  wire       rst_n,
 
-    input  wire [2:0] id_pins,       //raw, asynchronous, pulled high
+    input  wire [1:0] id_pins,       //raw, asynchronous, pulled high
 
-    output reg  [2:0] cart_id,       //debounced
-    output reg        cart_present,  //low when id_pins reads all ones
+    output reg  [1:0] cart_id,       //debounced
     output reg        cart_changed   //one-clk pulse when cart_id moves
 );
 
-    localparam [2:0] ID_NONE = 3'b111;   //nothing grounding any line
+    localparam [1:0] ID_NONE = 2'b11;   //nothing grounding either line
 
     //two flip-flops against metastability. sync1 may settle to a bogus value
     //on any given edge; sync2 is what the rest of the design is allowed to see
-    reg [2:0] sync1, sync2;
+    reg [1:0] sync1, sync2;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -51,7 +59,7 @@ module cartridge_id #(
     end
 
     //candidate value and how long it has held
-    reg [2:0]  candidate;
+    reg [1:0]  candidate;
     reg [23:0] stable_count;
 
     always @(posedge clk or negedge rst_n) begin
@@ -59,7 +67,6 @@ module cartridge_id #(
             candidate    <= ID_NONE;
             stable_count <= 24'd0;
             cart_id      <= ID_NONE;
-            cart_present <= 1'b0;
             cart_changed <= 1'b0;
         end else begin
             cart_changed <= 1'b0;
@@ -73,7 +80,6 @@ module cartridge_id #(
             end else if (cart_id != candidate) begin
                 //held long enough and it is genuinely different
                 cart_id      <= candidate;
-                cart_present <= (candidate != ID_NONE);
                 cart_changed <= 1'b1;
             end
         end

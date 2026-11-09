@@ -26,8 +26,8 @@ module sensor_packet_tb;
     reg signed [15:0] accel_x, accel_y, accel_z;
     reg signed [15:0] gyro_x, gyro_y, gyro_z;
     reg signed [15:0] pitch, roll;
-    reg calibrated, is_still, cart_present;
-    reg [2:0] cart_id;
+    reg calibrated, is_still;
+    reg [1:0] cart_a, cart_b;
 
     wire [7:0] tx_byte;
     wire       tx_start, tx_busy, tx_done, tx_serial, dropped;
@@ -39,7 +39,7 @@ module sensor_packet_tb;
         .gyro_x(gyro_x),   .gyro_y(gyro_y),   .gyro_z(gyro_z),
         .pitch(pitch),     .roll(roll),
         .calibrated(calibrated), .is_still(is_still),
-        .cart_id(cart_id), .cart_present(cart_present),
+        .cart_a(cart_a), .cart_b(cart_b),
         .tx_byte(tx_byte), .tx_start(tx_start),
         .tx_busy(tx_busy), .tx_done(tx_done),
         .dropped(dropped)
@@ -110,7 +110,7 @@ module sensor_packet_tb;
         gyro_x  = 16'sh7788;  gyro_y  = 16'sh99AA;  gyro_z  = 16'shBBCC;
         pitch   = 16'sh0102;  roll    = 16'sh0304;
         calibrated = 1'b1;    is_still = 1'b0;
-        cart_id = 3'b110;     cart_present = 1'b1;   //joystick inserted
+        cart_a  = 2'b10;      cart_b  = 2'b01;       //stick in A, d-pad in B
 
         repeat (4) @(negedge clk);
         rst_n = 1'b1;
@@ -131,7 +131,7 @@ module sensor_packet_tb;
         expect8("sync0", rx[0], 8'hAA);
         expect8("sync1", rx[1], 8'h55);
         expect8("seq",   rx[2], 8'h00);
-        expect8("status: cal + joystick cart", rx[3], 8'h39);
+        expect8("status: cal + stick in A, dpad in B", rx[3], 8'h19);
 
         $display("");
         $display("  --- payload ---");
@@ -168,7 +168,7 @@ module sensor_packet_tb;
         $display("  --- second packet ---");
         expect8("sync0",       rx[0], 8'hAA);
         expect8("seq advanced", rx[2], 8'h01);
-        expect8("status: + is_still", rx[3], 8'h3B);
+        expect8("status: + is_still", rx[3], 8'h1B);
         expect8("accel_x hi updated", rx[4], 8'hDE);
         expect8("accel_x lo updated", rx[5], 8'hAD);
 

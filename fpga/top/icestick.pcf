@@ -30,12 +30,13 @@ set_io spi_cs_n    81      # PIO1_05 = J2 pin 4  -> Click pin 3  (CS)
                            #           J2 pin 6  -> Click pin 7  (3.3V)
                            #           J2 pin 5  -> Click pin 8  (GND)
 
-# Cartridge hardware id, on the spare half of the Pmod header. For breadboard
-# testing jumper each one to 3.3V or GND directly. The real board needs
-# pull-ups so an empty slot reads 111.
-set_io cart_id_pins[0] 87   # PIO1_06 = J2 pin 7
-set_io cart_id_pins[1] 88   # PIO1_07 = J2 pin 8
-set_io cart_id_pins[2] 90   # PIO1_08 = J2 pin 9
+# Cartridge hardware ids, two pins per receptacle, on the spare half of the
+# Pmod header. For breadboard testing jumper each one to 3.3V or GND directly.
+# The real board needs pull-ups so an empty receptacle reads 11.
+set_io cart_a_pins[0]  87   # PIO1_06 = J2 pin 7
+set_io cart_a_pins[1]  88   # PIO1_07 = J2 pin 8
+set_io cart_b_pins[0]  90   # PIO1_08 = J2 pin 9
+set_io cart_b_pins[1]  91   # PIO1_09 = J2 pin 10
 
 # UART out to the onboard FT2232H, which presents it to the host as a serial
 # port over the same USB cable that programs the board. Schematic: the

@@ -28,9 +28,15 @@ module top (
     output wire spi_mosi,
     input  wire spi_miso,
 
-    //cartridge hardware id. on the breadboard these are jumpered straight to
-    //3.3V or GND; the real board needs pull-ups so an empty slot reads 111
-    input  wire [2:0] cart_id_pins,
+    //cartridge hardware ids, two pins per receptacle. on the breadboard these
+    //are jumpered straight to 3.3V or GND; the real board needs pull-ups so an
+    //empty receptacle reads 11.
+    //
+    //the left half has two receptacles and the right half one, so this build
+    //wires both and the right half's top level would simply instantiate
+    //cartridge_id once and tie cart_b high
+    input  wire [1:0] cart_a_pins,
+    input  wire [1:0] cart_b_pins,
 
     //to the onboard FT2232H, appears as a serial port on the host
     output wire uart_tx_pin,
@@ -65,17 +71,24 @@ module top (
     wire signed [15:0] gyro_x, gyro_y, gyro_z;
     wire               sample_valid;
 
-    //cartridge detection
-    wire [2:0] cart_id;
-    wire       cart_present, cart_changed;
+    //cartridge detection, one instance per receptacle
+    wire [1:0] cart_a, cart_b;
+    wire       cart_a_changed, cart_b_changed;
 
-    cartridge_id cart (
+    cartridge_id cart_recep_a (
         .clk          (clk_12mhz),
         .rst_n        (rst_n),
-        .id_pins      (cart_id_pins),
-        .cart_id      (cart_id),
-        .cart_present (cart_present),
-        .cart_changed (cart_changed)
+        .id_pins      (cart_a_pins),
+        .cart_id      (cart_a),
+        .cart_changed (cart_a_changed)
+    );
+
+    cartridge_id cart_recep_b (
+        .clk          (clk_12mhz),
+        .rst_n        (rst_n),
+        .id_pins      (cart_b_pins),
+        .cart_id      (cart_b),
+        .cart_changed (cart_b_changed)
     );
 
     //sensor_packet <> uart_tx
@@ -133,8 +146,8 @@ module top (
         .roll         (16'sd0),
         .calibrated   (1'b0),            //no bias module in this build
         .is_still     (1'b0),
-        .cart_id      (cart_id),
-        .cart_present (cart_present),
+        .cart_a       (cart_a),
+        .cart_b       (cart_b),
         .tx_byte      (uart_byte),
         .tx_start     (uart_start),
         .tx_busy      (uart_busy),
