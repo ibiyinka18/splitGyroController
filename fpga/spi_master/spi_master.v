@@ -1,3 +1,13 @@
+/* Generic SPI master, mode 0, MSB first, 8 bits per transfer.
+
+Knows nothing about what it is talking to. It moves one byte in each
+direction per transaction and frames them with cs_n; which register that
+byte means is entirely the caller's business. The IMU controller and the
+joystick ADC both drive it unmodified.
+
+hold_cs keeps cs_n asserted after a byte so a caller can chain several into
+one transaction, which is what a burst read needs.
+*/
 module spi_master #(
     parameter CLK_DIV =6
 )(
