@@ -157,7 +157,7 @@ module top (
     );
 
     uart_tx #(
-        .CLKS_PER_BIT (104)                 //12 MHz / 115200
+        .CLKS_PER_BIT (12)                  //12 MHz / 1 Mbaud, exact
     ) serial (
         .clk       (clk_12mhz),
         .rst_n     (rst_n),

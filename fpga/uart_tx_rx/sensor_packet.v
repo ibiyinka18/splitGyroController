@@ -19,7 +19,7 @@ ICM-45686 returns them in.
 
 Sending is decimated: the filter runs at the full 800 Hz sample rate because
 oversampling helps the maths, but only every DECIMATE-th result is
-transmitted. At 200 Hz this is ~42 kbps, comfortable inside 115200, and BLE
+transmitted. At 200 Hz this is ~42 kbps, a small fraction of the 1 Mbaud
 HID reports at around 250 Hz anyway so a faster link would gain nothing
 end to end.
 */
@@ -110,7 +110,7 @@ module sensor_packet #(
                   if (sending) begin
                     //the previous packet is still going out, so this one is
                     //genuinely lost. there is plenty of slack at 200 Hz over
-                    //115200, so this firing means the rate or baud needs a look
+                    //1 Mbaud, so this firing means the rate or baud needs a look
                     dropped <= 1'b1;
                   end else begin
                     pkt[0]  <= SYNC0;

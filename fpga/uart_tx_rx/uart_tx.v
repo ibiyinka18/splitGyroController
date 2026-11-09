@@ -11,9 +11,11 @@ stop bit guarantees the line is back up so the next start bit is a real edge.
 Bit order is LSB first, the opposite of SPI.
 */
 module uart_tx #(
-    //12 MHz / 115200 = 104.17, so 104. that is 0.16% off, well inside the
-    //2-3% a receiver tolerates before bits land in the wrong slot
-    parameter CLKS_PER_BIT = 104
+    //12 MHz / 1 Mbaud = 12 exactly, so there is no baud error at all. 115200
+    //would be 104.17 -> 104, which works, but a 21-byte packet takes 1.82 ms
+    //at that rate and would rival the radio hop in the latency budget. at
+    //1 Mbaud the same packet is 0.21 ms
+    parameter CLKS_PER_BIT = 12
 ) (
     input  wire       clk,
     input  wire       rst_n,

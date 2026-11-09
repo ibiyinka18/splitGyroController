@@ -13,7 +13,7 @@ samples.
 module sensor_packet_tb;
 
     localparam CLK_PERIOD   = 83.333;              //12 MHz
-    localparam CLKS_PER_BIT = 104;                 //115200 baud
+    localparam CLKS_PER_BIT = 12;                  //1 Mbaud
     localparam BIT_TIME     = CLKS_PER_BIT * CLK_PERIOD;
     localparam DECIMATE     = 4;
     localparam PACKET_LEN   = 21;
